@@ -36,7 +36,16 @@ const displayPeminjaman = (data) => {
 };
 
 const tambahPeminjaman = () => {
-    alert('Fitur tambah peminjaman akan segera hadir!');
+    const form = document.getElementById('peminjamanForm');
+    const dataSection = document.getElementById('dataPeminjaman');
+
+    if (form.style.display === 'none') {
+	form.style.display = 'block';
+	dataSection.style.display = 'none';
+    } else {
+	form.style.display = 'none';
+	dataSection.style.display = 'block';
+    }
 };
 
 document.getElementById('tambahPeminjaman').addEventListener('click', tambahPeminjaman);
