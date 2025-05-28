@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FILKOMAPPS - Peminjaman Kelas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <img src="./public/logo_filkom_apps.png" alt="Logo">
+            </div>
+            <div class="title">
+                <h1>FILKOMAPPS</h1>
+            </div>
+            <div class="date">
+                <p>May 22, 2025</p>
+            </div>
+        </div>
+    </header>
+    <main>
+	    <div class="header-container">
+		<h1>Peminjaman Kelas</h1>
+	</div>
+	
+	<button id="tambahPeminjaman">+ Tambah Peminjaman</button>
+        <div id="dataPeminjaman">
+            <h2>DATA PEMINJAMAN</h2>
+            <p>berikut adalah data dari peminjaman</p>
+            <div class="perhatian">
+                <p>Perhatian! Silahkan lihat persetujuan peminjaman maksimal 1x24 jam terkait peminjaman dan tanggal peminjaman.</p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>PEMINJAMAN</th>
+                        <th>STATUS</th>
+                        <th>TGL PEMINJAMAN</th>
+                    </tr>
+                </thead>
+                <tbody id="peminjamanTableBody">
+                    <!-- Data akan dimuat di sini -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
