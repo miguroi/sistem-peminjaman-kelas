@@ -14,6 +14,33 @@ const showSuccess = (message) => {
     alert(`Success: ${message}`);
 };
 
+const formatErrorMessage = (errorData) => {
+    let message = errorData.title || 'An error occurred';
+
+    if (errorData.detail) {
+        message = errorData.detail;
+    }
+
+    // Handle validation errors
+    if (errorData.validation_errors && Array.isArray(errorData.validation_errors)) {
+        const validationMessages = [];
+        errorData.validation_errors.forEach(errorObj => {
+            Object.keys(errorObj).forEach(field => {
+                const fieldError = errorObj[field];
+                if (fieldError.translation) {
+                    validationMessages.push(`${field}: ${fieldError.translation}`);
+                }
+            });
+        });
+
+        if (validationMessages.length > 0) {
+            message = validationMessages.join('\n');
+        }
+    }
+
+    return message;
+};
+
 const makeApiCall = async (endpoint, method = 'GET', body = null) => {
     const token = localStorage.getItem('authToken');
 
@@ -45,10 +72,25 @@ const makeApiCall = async (endpoint, method = 'GET', body = null) => {
             return;
         }
 
+        // Handle 201 Created with empty body
+        if (response.status === 201) {
+            const text = await response.text();
+            if (!text || text.trim() === '') {
+                return {}; // Return empty object for successful creation
+            } else {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return {}; // Return empty object if JSON parsing fails
+                }
+            }
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || `HTTP error! status: ${response.status}`);
+            const errorMessage = formatErrorMessage(data);
+            throw new Error(errorMessage);
         }
 
         return data;
@@ -282,7 +324,7 @@ const submitReply = async (proposalId) => {
     }
 };
 
-// Toggle form visibility
+// Toggle form visibility (only for students)
 const tambahPeminjaman = () => {
     const form = document.getElementById('peminjamanForm');
     const dataSection = document.getElementById('dataPeminjaman');
@@ -351,6 +393,18 @@ const submitProposal = async () => {
     }
 };
 
+// Filter proposals by status (for admin)
+function filterProposals() {
+    const statusFilter = document.getElementById('statusFilter');
+    if (!statusFilter) return;
+
+    const statusValue = statusFilter.value;
+    const filteredData = statusValue ?
+      proposalsData.filter(proposal => proposal.status === statusValue) :
+      proposalsData;
+    displayProposals(filteredData);
+}
+
 // Logout function
 const logout = () => {
     localStorage.removeItem('authToken');
@@ -366,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load initial data
     fetchProposals();
 
-    // Set up event listeners
+    // Set up event listeners only if elements exist
     const tambahButton = document.getElementById('tambahPeminjaman');
     if (tambahButton) {
         tambahButton.addEventListener('click', tambahPeminjaman);

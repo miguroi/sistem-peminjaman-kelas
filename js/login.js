@@ -15,6 +15,33 @@ const showLoading = (show = true) => {
     loadingDiv.style.display = show ? 'block' : 'none';
 };
 
+const formatErrorMessage = (errorData) => {
+    let message = errorData.title || 'An error occurred';
+
+    if (errorData.detail) {
+        message = errorData.detail;
+    }
+
+    // Handle validation errors
+    if (errorData.validation_errors && Array.isArray(errorData.validation_errors)) {
+        const validationMessages = [];
+        errorData.validation_errors.forEach(errorObj => {
+            Object.keys(errorObj).forEach(field => {
+                const fieldError = errorObj[field];
+                if (fieldError.translation) {
+                    validationMessages.push(`${field}: ${fieldError.translation}`);
+                }
+            });
+        });
+
+        if (validationMessages.length > 0) {
+            message = validationMessages.join('\n');
+        }
+    }
+
+    return message;
+};
+
 const makeApiCall = async (endpoint, method = 'GET', body = null, includeAuth = false) => {
     const config = {
         method,
@@ -36,10 +63,26 @@ const makeApiCall = async (endpoint, method = 'GET', body = null, includeAuth = 
 
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+        // Handle 201 Created with empty body
+        if (response.status === 201) {
+            const text = await response.text();
+            if (!text || text.trim() === '') {
+                return {}; // Return empty object for successful creation
+            } else {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return {}; // Return empty object if JSON parsing fails
+                }
+            }
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || `HTTP error! status: ${response.status}`);
+            const errorMessage = formatErrorMessage(data);
+            throw new Error(errorMessage);
         }
 
         return data;
