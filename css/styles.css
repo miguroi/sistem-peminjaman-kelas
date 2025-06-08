@@ -115,6 +115,11 @@ button:hover {
     background-color: #0056b3;
 }
 
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
 .add-button {
     background-color: #28a745;
     margin-bottom: 20px;
@@ -168,24 +173,6 @@ tr:hover {
     border-radius: 4px;
 }
 
-.filter-section {
-    background-color: white;
-    padding: 15px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.filter-section label {
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-.filter-section select {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
 form {
     display: flex;
     flex-direction: column;
@@ -206,7 +193,7 @@ label {
 
 input, textarea, select {
     padding: 12px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
@@ -241,6 +228,15 @@ button[type="button"] {
 
 button[type="button"]:hover {
     background-color: #45a049;
+}
+
+/* Field error styles */
+.field-error {
+    color: #dc3545;
+    font-size: 12px;
+    margin-bottom: 15px;
+    margin-top: 5px;
+    display: none;
 }
 
 /* Modal styles */
@@ -311,6 +307,70 @@ td button {
     font-size: 12px;
 }
 
+/* Pagination styles */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: #666;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-btn {
+    padding: 8px 12px;
+    margin: 0 2px;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #007BFF;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.page-btn:hover {
+    background-color: #007BFF;
+    color: white;
+}
+
+.page-btn.active {
+    background-color: #007BFF;
+    color: white;
+    border-color: #007BFF;
+}
+
+.page-btn:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
+
+#pageNumbers {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#pageNumbers span {
+    padding: 0 5px;
+    color: #666;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .header {
@@ -348,6 +408,22 @@ td button {
         width: 95%;
         margin: 10px;
     }
+
+    .pagination-container {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .pagination-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .page-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
 }
 
 /* Error and success messages */
@@ -358,6 +434,7 @@ td button {
     border: 1px solid #f5c6cb;
     border-radius: 4px;
     margin: 10px 0;
+    display: none;
 }
 
 .success-message {

@@ -55,6 +55,18 @@
                 </tr>
                 </tbody>
             </table>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span id="paginationInfo">Showing 0 of 0 entries</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="prevPage" onclick="changePage(-1)" disabled>Previous</button>
+                    <span id="pageNumbers"></span>
+                    <button id="nextPage" onclick="changePage(1)" disabled>Next</button>
+                </div>
+            </div>
         </div>
 
         <div id="peminjamanForm" style="display: none;">
@@ -65,33 +77,44 @@
             <form id="peminjamanFormElement">
                 <label for="kelas">Kelas (*tulis abjad secara lengkap, contoh: A) <span style="color: red;">*</span></label>
                 <input type="text" id="kelas" name="kelas" placeholder="F" required>
+                <div class="field-error" id="kelas-error"></div>
 
                 <label for="tujuan">Tujuan <span style="color: red;">*</span></label>
                 <input type="text" id="tujuan" name="tujuan" placeholder="Ruang Kelas Pengganti" required>
+                <div class="field-error" id="tujuan-error"></div>
 
                 <label for="mataKuliah">Mata Kuliah <span style="color: red;">*</span></label>
                 <input type="text" id="mataKuliah" name="mataKuliah" placeholder="Pengembangan Aplikasi Web" required>
+                <div class="field-error" id="mataKuliah-error"></div>
 
                 <label for="dosenPengampu">Dosen Pengampu <span style="color: red;">*</span></label>
                 <input type="text" id="dosenPengampu" name="dosenPengampu" placeholder="Eriq Muhammad Adam, S.T., M.Kom." required>
+                <div class="field-error" id="dosenPengampu-error"></div>
 
                 <label for="tanggal">Tanggal <span style="color: red;">*</span></label>
                 <input type="date" id="tanggal" name="tanggal" required>
+                <div class="field-error" id="tanggal-error"></div>
 
                 <label for="jamMulai">Jam Mulai <span style="color: red;">*</span></label>
                 <input type="time" id="jamMulai" name="jamMulai" required>
+                <div class="field-error" id="jamMulai-error"></div>
 
                 <label for="jamSelesai">Jam Selesai <span style="color: red;">*</span></label>
                 <input type="time" id="jamSelesai" name="jamSelesai" required>
+                <div class="field-error" id="jamSelesai-error"></div>
 
                 <label for="kapasitas">Kapasitas (jumlah orang) <span style="color: red;">*</span></label>
                 <input type="number" id="kapasitas" name="kapasitas" placeholder="40" min="1" required>
+                <div class="field-error" id="kapasitas-error"></div>
 
                 <label for="catatanTambahan">Catatan Tambahan</label>
                 <textarea id="catatanTambahan" name="catatanTambahan" rows="3" placeholder="Contoh: Butuh yang ada layar besar"></textarea>
+                <div class="field-error" id="catatanTambahan-error"></div>
+
+                <div id="generalError" class="error-message" style="display: none;"></div>
 
                 <button type="button" id="submitPeminjaman">Submit Proposal</button>
-                <button type="button" onclick="document.getElementById('peminjamanForm').style.display='none'; document.getElementById('dataPeminjaman').style.display='block';">Cancel</button>
+                <button type="button" onclick="document.getElementById('peminjamanForm').style.display='none'; document.getElementById('dataPeminjaman').style.display='block'; clearFormErrors();">Cancel</button>
             </form>
         </div>
     </main>

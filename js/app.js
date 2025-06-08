@@ -4,6 +4,8 @@ let proposalsData = [];
 let currentUser = null;
 let currentPage = 1;
 let pageSize = 10;
+let totalPages = 1;
+let totalCount = 0;
 
 // Utility functions
 const showError = (message) => {
@@ -14,6 +16,74 @@ const showSuccess = (message) => {
     alert(`Success: ${message}`);
 };
 
+// Clear all form validation errors
+const clearFormErrors = () => {
+    const errorElements = document.querySelectorAll('.field-error');
+    errorElements.forEach(element => {
+        element.textContent = '';
+        element.style.display = 'none';
+    });
+
+    const generalError = document.getElementById('generalError');
+    if (generalError) {
+        generalError.style.display = 'none';
+        generalError.textContent = '';
+    }
+
+    // Remove error styling from inputs
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.style.borderColor = '';
+    });
+};
+
+// Show field-specific validation errors
+const showFieldErrors = (validationErrors) => {
+    clearFormErrors();
+
+    if (!validationErrors || !Array.isArray(validationErrors)) {
+        return;
+    }
+
+    // Map API field names to form field names
+    const fieldMapping = {
+        'purpose': 'tujuan',
+        'course': 'mataKuliah',
+        'class_id': 'kelas',
+        'lecturer': 'dosenPengampu',
+        'starts_at': 'jamMulai',
+        'ends_at': 'jamSelesai',
+        'occupancy': 'kapasitas',
+        'note': 'catatanTambahan',
+        'room': 'room',
+        'is_approved': 'decision'
+    };
+
+    validationErrors.forEach(errorObj => {
+        Object.keys(errorObj).forEach(apiFieldName => {
+            const fieldError = errorObj[apiFieldName];
+            const formFieldName = fieldMapping[apiFieldName] || apiFieldName;
+
+            // Find the error element for this field
+            const errorElement = document.getElementById(`${formFieldName}-error`);
+            const inputElement = document.getElementById(formFieldName);
+
+            if (errorElement && fieldError.translation) {
+                errorElement.textContent = fieldError.translation;
+                errorElement.style.display = 'block';
+                errorElement.style.color = 'red';
+                errorElement.style.fontSize = '12px';
+                errorElement.style.marginTop = '5px';
+
+                // Highlight the input field
+                if (inputElement) {
+                    inputElement.style.borderColor = 'red';
+                }
+            }
+        });
+    });
+};
+
 const formatErrorMessage = (errorData) => {
     let message = errorData.title || 'An error occurred';
 
@@ -21,21 +91,10 @@ const formatErrorMessage = (errorData) => {
         message = errorData.detail;
     }
 
-    // Handle validation errors
+    // Don't show individual validation errors in alert if we have validation_errors array
+    // The field errors will be shown below each field instead
     if (errorData.validation_errors && Array.isArray(errorData.validation_errors)) {
-        const validationMessages = [];
-        errorData.validation_errors.forEach(errorObj => {
-            Object.keys(errorObj).forEach(field => {
-                const fieldError = errorObj[field];
-                if (fieldError.translation) {
-                    validationMessages.push(`${field}: ${fieldError.translation}`);
-                }
-            });
-        });
-
-        if (validationMessages.length > 0) {
-            message = validationMessages.join('\n');
-        }
+        return 'Please check the form for validation errors';
     }
 
     return message;
@@ -90,7 +149,9 @@ const makeApiCall = async (endpoint, method = 'GET', body = null) => {
 
         if (!response.ok) {
             const errorMessage = formatErrorMessage(data);
-            throw new Error(errorMessage);
+            const error = new Error(errorMessage);
+            error.validationErrors = data.validation_errors;
+            throw error;
         }
 
         return data;
@@ -110,13 +171,87 @@ const loadUserInfo = () => {
     }
 };
 
+// Pagination functions
+const changePage = (direction) => {
+    const newPage = currentPage + direction;
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        fetchProposals();
+    }
+};
+
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        fetchProposals();
+    }
+};
+
+const updatePaginationControls = (pagination) => {
+    if (!pagination) return;
+
+    totalPages = pagination.total_pages || 1;
+    totalCount = pagination.total_count || 0;
+
+    // Update pagination info
+    const paginationInfo = document.getElementById('paginationInfo');
+    if (paginationInfo) {
+        const startItem = ((currentPage - 1) * pageSize) + 1;
+        const endItem = Math.min(currentPage * pageSize, totalCount);
+        paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalCount} entries`;
+    }
+
+    // Update navigation buttons
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+
+    if (prevButton) {
+        prevButton.disabled = !pagination.has_prev;
+    }
+
+    if (nextButton) {
+        nextButton.disabled = !pagination.has_next;
+    }
+
+    // Update page numbers
+    const pageNumbers = document.getElementById('pageNumbers');
+    if (pageNumbers) {
+        let pagesHtml = '';
+
+        // Show up to 5 page numbers around current page
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            pagesHtml += `<button class="page-btn" onclick="goToPage(1)">1</button>`;
+            if (startPage > 2) {
+                pagesHtml += `<span>...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const activeClass = i === currentPage ? 'active' : '';
+            pagesHtml += `<button class="page-btn ${activeClass}" onclick="goToPage(${i})">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pagesHtml += `<span>...</span>`;
+            }
+            pagesHtml += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+        }
+
+        pageNumbers.innerHTML = pagesHtml;
+    }
+};
+
 // Fetch proposals from API
 const fetchProposals = async () => {
     try {
         const response = await makeApiCall(`/proposals?page=${currentPage}&size=${pageSize}`);
         proposalsData = response.proposals || [];
         displayProposals(proposalsData);
-        updatePagination(response.pagination);
+        updatePaginationControls(response.pagination);
     } catch (error) {
         showError('Failed to fetch proposals: ' + error.message);
     }
@@ -175,12 +310,6 @@ const getStatusBadge = (status) => {
     };
 
     return `<span style="background-color: ${statusColors[status]}; color: white; padding: 2px 8px; border-radius: 4px;">${status.toUpperCase()}</span>`;
-};
-
-// Update pagination info
-const updatePagination = (pagination) => {
-    // You can implement pagination controls here if needed
-    console.log('Pagination:', pagination);
 };
 
 // View proposal detail
@@ -270,12 +399,15 @@ const showReplyForm = (proposalId) => {
             <label>
                 <input type="radio" name="decision" value="reject" required> Reject
             </label><br><br>
+            <div class="field-error" id="decision-error"></div>
             
             <label for="room">Room (required if approving):</label>
-            <input type="text" id="room" name="room" placeholder="e.g., F2.1"><br><br>
+            <input type="text" id="room" name="room" placeholder="e.g., F2.1"><br>
+            <div class="field-error" id="room-error"></div>
             
             <label for="adminNote">Note:</label>
-            <textarea id="adminNote" name="adminNote" rows="3" style="width: 100%;"></textarea><br><br>
+            <textarea id="adminNote" name="adminNote" rows="3" style="width: 100%;"></textarea><br>
+            <div class="field-error" id="adminNote-error"></div>
             
             <button type="button" onclick="submitReply('${proposalId}')">Submit Reply</button>
             <button type="button" onclick="this.closest('.modal').remove()">Cancel</button>
@@ -289,21 +421,19 @@ const showReplyForm = (proposalId) => {
 
 // Submit admin reply
 const submitReply = async (proposalId) => {
+    // Clear previous errors
+    const modal = document.querySelector('.modal');
+    const errorElements = modal.querySelectorAll('.field-error');
+    errorElements.forEach(element => {
+        element.textContent = '';
+        element.style.display = 'none';
+    });
+
     const form = document.getElementById('replyForm');
     const formData = new FormData(form);
     const decision = formData.get('decision');
     const room = formData.get('room');
     const note = formData.get('adminNote');
-
-    if (!decision) {
-        showError('Please select approve or reject');
-        return;
-    }
-
-    if (decision === 'approve' && !room) {
-        showError('Room is required when approving a proposal');
-        return;
-    }
 
     const replyData = {
         is_approved: decision === 'approve',
@@ -320,7 +450,11 @@ const submitReply = async (proposalId) => {
         document.querySelector('.modal').remove();
         fetchProposals(); // Refresh the list
     } catch (error) {
-        showError('Failed to submit reply: ' + error.message);
+        if (error.validationErrors) {
+            showFieldErrors(error.validationErrors);
+        } else {
+            showError('Failed to submit reply: ' + error.message);
+        }
     }
 };
 
@@ -332,6 +466,7 @@ const tambahPeminjaman = () => {
     if (form.style.display === 'none') {
         form.style.display = 'block';
         dataSection.style.display = 'none';
+        clearFormErrors(); // Clear any previous errors
     } else {
         form.style.display = 'none';
         dataSection.style.display = 'block';
@@ -340,6 +475,8 @@ const tambahPeminjaman = () => {
 
 // Submit new proposal
 const submitProposal = async () => {
+    clearFormErrors(); // Clear previous errors
+
     const kelas = document.getElementById('kelas').value;
     const tujuan = document.getElementById('tujuan').value;
     const mataKuliah = document.getElementById('mataKuliah').value;
@@ -350,21 +487,9 @@ const submitProposal = async () => {
     const kapasitas = document.getElementById('kapasitas').value;
     const catatanTambahan = document.getElementById('catatanTambahan').value;
 
-    // Validate required fields
-    if (!kelas || !tujuan || !mataKuliah || !dosenPengampu || !tanggal || !jamMulai || !jamSelesai || !kapasitas) {
-        showError('Please fill in all required fields');
-        return;
-    }
-
     // Combine date and time for starts_at and ends_at
     const startsAt = new Date(`${tanggal}T${jamMulai}:00`);
     const endsAt = new Date(`${tanggal}T${jamSelesai}:00`);
-
-    // Validate that end time is after start time
-    if (endsAt <= startsAt) {
-        showError('End time must be after start time');
-        return;
-    }
 
     const proposalData = {
         purpose: tujuan,
@@ -383,27 +508,26 @@ const submitProposal = async () => {
 
         // Reset form and switch view
         document.getElementById('peminjamanFormElement').reset();
+        clearFormErrors();
         document.getElementById('peminjamanForm').style.display = 'none';
         document.getElementById('dataPeminjaman').style.display = 'block';
 
         // Refresh proposals list
         fetchProposals();
     } catch (error) {
-        showError('Failed to submit proposal: ' + error.message);
+        if (error.validationErrors) {
+            showFieldErrors(error.validationErrors);
+        } else {
+            const generalError = document.getElementById('generalError');
+            if (generalError) {
+                generalError.textContent = error.message;
+                generalError.style.display = 'block';
+            } else {
+                showError('Failed to submit proposal: ' + error.message);
+            }
+        }
     }
 };
-
-// Filter proposals by status (for admin)
-function filterProposals() {
-    const statusFilter = document.getElementById('statusFilter');
-    if (!statusFilter) return;
-
-    const statusValue = statusFilter.value;
-    const filteredData = statusValue ?
-      proposalsData.filter(proposal => proposal.status === statusValue) :
-      proposalsData;
-    displayProposals(filteredData);
-}
 
 // Logout function
 const logout = () => {

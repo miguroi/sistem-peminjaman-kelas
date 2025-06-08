@@ -15,6 +15,76 @@ const showLoading = (show = true) => {
     loadingDiv.style.display = show ? 'block' : 'none';
 };
 
+// Clear field validation errors
+const clearFieldErrors = () => {
+    // Clear login form errors
+    const loginInputs = document.querySelectorAll('#loginForm input');
+    loginInputs.forEach(input => {
+        input.style.borderColor = '';
+        const errorElement = input.parentNode.querySelector('.field-error');
+        if (errorElement) {
+            errorElement.remove();
+        }
+    });
+
+    // Clear register form errors
+    const registerInputs = document.querySelectorAll('#registerForm input');
+    registerInputs.forEach(input => {
+        input.style.borderColor = '';
+        const errorElement = input.parentNode.querySelector('.field-error');
+        if (errorElement) {
+            errorElement.remove();
+        }
+    });
+};
+
+// Show field-specific validation errors
+const showFieldErrors = (validationErrors, formType = 'login') => {
+    clearFieldErrors();
+
+    if (!validationErrors || !Array.isArray(validationErrors)) {
+        return;
+    }
+
+    validationErrors.forEach(errorObj => {
+        Object.keys(errorObj).forEach(fieldName => {
+            const fieldError = errorObj[fieldName];
+            let inputElement;
+
+            if (formType === 'register') {
+                // Map field names for register form
+                if (fieldName === 'email') {
+                    inputElement = document.getElementById('regEmail');
+                } else if (fieldName === 'password') {
+                    inputElement = document.getElementById('regPassword');
+                } else if (fieldName === 'name') {
+                    inputElement = document.getElementById('regName');
+                }
+            } else {
+                // Login form
+                inputElement = document.getElementById(fieldName);
+            }
+
+            if (inputElement && fieldError.translation) {
+                // Highlight the input field
+                inputElement.style.borderColor = 'red';
+
+                // Create and display error message
+                const errorElement = document.createElement('div');
+                errorElement.className = 'field-error';
+                errorElement.textContent = fieldError.translation;
+                errorElement.style.color = 'red';
+                errorElement.style.fontSize = '12px';
+                errorElement.style.marginTop = '5px';
+                errorElement.style.marginBottom = '10px';
+
+                // Insert error message after the input
+                inputElement.parentNode.insertBefore(errorElement, inputElement.nextSibling);
+            }
+        });
+    });
+};
+
 const formatErrorMessage = (errorData) => {
     let message = errorData.title || 'An error occurred';
 
@@ -22,21 +92,10 @@ const formatErrorMessage = (errorData) => {
         message = errorData.detail;
     }
 
-    // Handle validation errors
+    // Don't show individual validation errors in alert if we have validation_errors array
+    // The field errors will be shown below each field instead
     if (errorData.validation_errors && Array.isArray(errorData.validation_errors)) {
-        const validationMessages = [];
-        errorData.validation_errors.forEach(errorObj => {
-            Object.keys(errorObj).forEach(field => {
-                const fieldError = errorObj[field];
-                if (fieldError.translation) {
-                    validationMessages.push(`${field}: ${fieldError.translation}`);
-                }
-            });
-        });
-
-        if (validationMessages.length > 0) {
-            message = validationMessages.join('\n');
-        }
+        return 'Please check the form for validation errors';
     }
 
     return message;
@@ -82,7 +141,9 @@ const makeApiCall = async (endpoint, method = 'GET', body = null, includeAuth = 
 
         if (!response.ok) {
             const errorMessage = formatErrorMessage(data);
-            throw new Error(errorMessage);
+            const error = new Error(errorMessage);
+            error.validationErrors = data.validation_errors;
+            throw error;
         }
 
         return data;
@@ -94,6 +155,8 @@ const makeApiCall = async (endpoint, method = 'GET', body = null, includeAuth = 
 
 // Login functionality
 document.getElementById('loginButton').addEventListener('click', async function() {
+    clearFieldErrors();
+
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
@@ -121,7 +184,11 @@ document.getElementById('loginButton').addEventListener('click', async function(
             window.location.href = 'user_dashboard.html';
         }
     } catch (error) {
-        showError(error.message || 'Login failed. Please try again.');
+        if (error.validationErrors) {
+            showFieldErrors(error.validationErrors, 'login');
+        } else {
+            showError(error.message || 'Login failed. Please try again.');
+        }
     } finally {
         showLoading(false);
     }
@@ -129,16 +196,20 @@ document.getElementById('loginButton').addEventListener('click', async function(
 
 // Register functionality
 document.getElementById('registerButton').addEventListener('click', function() {
+    clearFieldErrors();
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'block';
 });
 
 document.getElementById('backToLogin').addEventListener('click', function() {
+    clearFieldErrors();
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('loginForm').style.display = 'block';
 });
 
 document.getElementById('submitRegister').addEventListener('click', async function() {
+    clearFieldErrors();
+
     const name = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
@@ -169,7 +240,11 @@ document.getElementById('submitRegister').addEventListener('click', async functi
         // Redirect to user dashboard (new registrations are students by default)
         window.location.href = 'user_dashboard.html';
     } catch (error) {
-        showError(error.message || 'Registration failed. Please try again.');
+        if (error.validationErrors) {
+            showFieldErrors(error.validationErrors, 'register');
+        } else {
+            showError(error.message || 'Registration failed. Please try again.');
+        }
     } finally {
         showLoading(false);
     }
