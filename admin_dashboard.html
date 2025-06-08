@@ -61,49 +61,6 @@
                 </tbody>
             </table>
         </div>
-
-        <!-- Admin-only form for creating proposals on behalf of students -->
-        <button class="add-button" id="tambahPeminjaman" style="margin-top: 20px;">
-            Tambah Peminjaman (Atas Nama Mahasiswa)
-        </button>
-
-        <div id="peminjamanForm" style="display: none;">
-            <h2 class="data-title">FORM PEMINJAMAN</h2>
-            <div class="notice">
-                <strong>Perhatian!</strong> Sebagai admin, Anda dapat membuat proposal atas nama mahasiswa
-            </div>
-            <form id="peminjamanFormElement">
-                <label for="kelas">Kelas (*tulis abjad secara lengkap, contoh: A) <span style="color: red;">*</span></label>
-                <input type="text" id="kelas" name="kelas" placeholder="F" required>
-
-                <label for="tujuan">Tujuan <span style="color: red;">*</span></label>
-                <input type="text" id="tujuan" name="tujuan" placeholder="Ruang Kelas Pengganti" required>
-
-                <label for="mataKuliah">Mata Kuliah <span style="color: red;">*</span></label>
-                <input type="text" id="mataKuliah" name="mataKuliah" placeholder="Pengembangan Aplikasi Web" required>
-
-                <label for="dosenPengampu">Dosen Pengampu <span style="color: red;">*</span></label>
-                <input type="text" id="dosenPengampu" name="dosenPengampu" placeholder="Eriq Muhammad Adam, S.T., M.Kom." required>
-
-                <label for="tanggal">Tanggal <span style="color: red;">*</span></label>
-                <input type="date" id="tanggal" name="tanggal" required>
-
-                <label for="jamMulai">Jam Mulai <span style="color: red;">*</span></label>
-                <input type="time" id="jamMulai" name="jamMulai" required>
-
-                <label for="jamSelesai">Jam Selesai <span style="color: red;">*</span></label>
-                <input type="time" id="jamSelesai" name="jamSelesai" required>
-
-                <label for="kapasitas">Kapasitas (jumlah orang) <span style="color: red;">*</span></label>
-                <input type="number" id="kapasitas" name="kapasitas" placeholder="40" min="1" required>
-
-                <label for="catatanTambahan">Catatan Tambahan</label>
-                <textarea id="catatanTambahan" name="catatanTambahan" rows="3" placeholder="Contoh: Butuh yang ada layar besar"></textarea>
-
-                <button type="button" id="submitPeminjaman">Submit Proposal</button>
-                <button type="button" onclick="document.getElementById('peminjamanForm').style.display='none'; document.getElementById('dataPeminjaman').style.display='block';">Cancel</button>
-            </form>
-        </div>
     </main>
 </div>
 
