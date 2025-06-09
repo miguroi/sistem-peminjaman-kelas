@@ -3,100 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Proposal Management</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="menu-icon">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <div class="logo">
-                <img src="./public/logo_filkom_apps.png" alt="FILKOMAPPS Logo">
-            </div>
-            <div class="profile-menu">
-                <button id="logoutButton">Logout</button>
-            </div>
-        </header>
-
-        <div class="page-header">
-            <div class="page-title">Admin Dashboard</div>
-            <div class="page-date">May 22, 2025</div>
+<div class="container">
+    <header class="header">
+        <div class="menu-icon">
+            <span></span>
+            <span></span>
+            <span></span>
         </div>
+        <div class="logo">
+            <img src="./public/logo_filkom_apps.png" alt="FILKOMAPPS Logo">
+        </div>
+        <div class="profile-menu">
+            <span id="userWelcome"></span>
+            <button id="logoutButton">Logout</button>
+        </div>
+    </header>
 
-        <main class="content">
-            <button class="add-button" id="tambahPeminjaman">
-                Tambah Peminjaman
-            </button>
-
-            <div id="dataPeminjaman">
-                <h2 class="data-title">DATA PEMINJAMAN</h2>
-                <div class="notice">
-                    <strong>Perhatian!</strong> Silahkan lihat persetujuan peminjaman maksimal 1x24 jam terkait peminjaman dan tanggal peminjaman.
-                </div>
-
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>PEMINJAMAN</th>
-                            <th>STATUS</th>
-                            <th>TGL PEMINJAMAN</th>
-                        </tr>
-                    </thead>
-                    <tbody id="peminjamanTableBody">
-                        <tr>
-                            <td colspan="3" class="no-data">No data available in table</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div id="peminjamanForm" style="display: none;">
-                <h2 class="data-title">FORM PEMINJAMAN</h2>
-                <div class="notice">
-                    <strong>Perhatian!</strong> Silahkan isi form dibawah dan lengkapi data
-                </div>
-                <form id="peminjamanFormElement">
-                    <label for="namaLengkap">Nama Lengkap</label>
-                    <input type="text" id="namaLengkap" name="namaLengkap" placeholder="Joshua Dwiputra Rendro Joelaskoro">
-
-                    <label for="programStudi">Program Studi</label>
-                    <input type="text" id="programStudi" name="programStudi" placeholder="Teknik Informatika">
-
-                    <label for="kelas">Kelas (*tulis abjad secara lengkap, contoh: A)</label>
-                    <input type="text" id="kelas" name="kelas" placeholder="F">
-
-                    <label for="tujuan">Tujuan</label>
-                    <input type="text" id="tujuan" name="tujuan" placeholder="Ruang Kelas Pengganti">
-
-                    <label for="mataKuliah">Mata Kuliah</label>
-                    <input type="text" id="mataKuliah" name="mataKuliah" placeholder="Pengembangan-Aplikasi Web">
-
-                    <label for="dosenPengampu">Dosen Pengampu</label>
-                    <input type="text" id="dosenPengampu" name="dosenPengampu" placeholder="Eriq Muhammad Adam, S.T., M.Kom.">
-
-                    <label for="tanggal">Tanggal</label>
-                    <input type="date" id="tanggal" name="tanggal" placeholder="26-06-2018">
-
-                    <label for="jamPeminjaman">Jam Peminjaman</label>
-                    <input type="time" id="jamPeminjaman" name="jamPeminjaman" placeholder="07:00">
-
-                    <label for="kapasitas">Kapasitas</label>
-                    <input type="text" id="kapasitas" name="kapasitas" placeholder="40 orang">
-
-                    <label for="catatanTambahan">Catatan Tambahan</label>
-                    <input type="text" id="catatanTambahan" name="catatanTambahan">
-
-                    <button type="button" id="submitPeminjaman">Submit</button>
-                </form>
-            </div>
-        </main>
+    <div class="page-header">
+        <div class="page-title">Admin Dashboard - Proposal Management</div>
+        <div class="page-date">May 22, 2025</div>
     </div>
 
-    <script src="js/app.js"></script>
+    <main class="content">
+        <div id="dataPeminjaman">
+            <h2 class="data-title">SEMUA PROPOSAL PEMINJAMAN</h2>
+            <div class="notice">
+                <strong>Perhatian!</strong> Sebagai admin, Anda dapat melihat semua proposal dan memberikan persetujuan atau penolakan.
+            </div>
+
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>TUJUAN</th>
+                    <th>PENGAJU</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                </tr>
+                </thead>
+                <tbody id="peminjamanTableBody">
+                <tr>
+                    <td colspan="4" class="no-data">Loading data...</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span id="paginationInfo">Showing 0 of 0 entries</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="prevPage" onclick="changePage(-1)" disabled>Previous</button>
+                    <span id="pageNumbers"></span>
+                    <button id="nextPage" onclick="changePage(1)" disabled>Next</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // Set welcome message for admin
+  document.addEventListener('DOMContentLoaded', function() {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const user = JSON.parse(userInfo);
+      const welcomeElement = document.getElementById('userWelcome');
+      if (welcomeElement) {
+        welcomeElement.textContent = `Welcome Admin, ${user.name}`;
+        welcomeElement.style.marginRight = '10px';
+      }
+    }
+  });
+</script>
 </body>
 </html>
-
