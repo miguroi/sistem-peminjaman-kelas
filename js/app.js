@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = 'https://paw.nathakusuma.com/api/v1';
 
 let proposalsData = [];
 let currentUser = null;

@@ -70,7 +70,7 @@
         const user = JSON.parse(userInfo);
 
         // Verify token is still valid by making a simple API call
-        fetch('http://localhost:8080/api/v1/proposals?page=1&size=1', {
+        fetch('https://paw.nathakusuma.com/api/v1/proposals?page=1&size=1', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
